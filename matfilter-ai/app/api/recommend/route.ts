@@ -259,6 +259,9 @@ export async function POST(request: Request) {
           candidates: geocoded.candidates
         });
       }
+      if (geocoded.lat == null || geocoded.lng == null || !geocoded.label) {
+        return bad("지역 좌표를 확인하지 못했습니다. 더 구체적인 지역명이나 랜드마크를 입력해 주세요.", "VALIDATION_ERROR");
+      }
       center = { lat: geocoded.lat, lng: geocoded.lng };
       label = geocoded.label;
     }
