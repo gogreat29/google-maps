@@ -21,10 +21,10 @@ const minRatings = [
 ] as const;
 const priorities: Priority[] = ["맛", "가격", "분위기", "대기시간", "친절도", "주차", "거리"];
 const loadingMessages = [
-  "Google Maps에서 식당을 찾고 있어요.",
-  "영업시간과 평점을 확인하고 있어요.",
-  "대가성 표현이 포함된 리뷰를 제외하고 있어요.",
-  "내 조건에 가장 가까운 식당을 비교하고 있어요."
+  "네이버 지역 검색에서 식당을 찾고 있어요.",
+  "지역과 음식 종류에 맞는 장소를 확인하고 있어요.",
+  "네이버 오픈API가 제공하는 장소 정보를 정리하고 있어요.",
+  "내 조건에 가까운 식당을 비교하고 있어요."
 ];
 
 type LocationState = {
@@ -87,7 +87,7 @@ export default function Home() {
           const data = await reverse.json();
           if (!reverse.ok || !data.ok) throw new Error(data.message || "주소 변환에 실패했습니다.");
           setLocation({ label: data.label, lat, lng });
-          setMessage("현재 위치를 지역 입력값으로 설정했습니다. 조건을 선택한 뒤 검색 버튼을 눌러 주세요.");
+          setMessage("현재 위치 좌표를 입력값으로 설정했습니다. 네이버 오픈API 버전은 동네명 직접 입력이 더 정확합니다.");
         } catch (error) {
           setLocation({ label: `${lat.toFixed(5)}, ${lng.toFixed(5)}`, lat, lng });
           setMessage(error instanceof Error ? error.message : "현재 위치 주소 변환에 실패했습니다.");
@@ -150,10 +150,10 @@ export default function Home() {
         <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="mb-3 inline-flex rounded-full bg-coral-100 px-3 py-1 text-sm font-bold text-coral-700">
-              광고성 리뷰 자동 제외
+              네이버 오픈API 버전
             </div>
             <h1 className="text-4xl font-black tracking-normal text-ink sm:text-5xl">맛필터 AI</h1>
-            <p className="mt-3 text-lg font-semibold text-stone-700">광고성 리뷰는 빼고, 내 조건에 맞는 식당 3곳만</p>
+            <p className="mt-3 text-lg font-semibold text-stone-700">네이버 지역 검색으로, 내 조건에 가까운 식당 3곳만</p>
           </div>
           <p className="max-w-sm rounded-2xl bg-coral-50 px-4 py-3 text-sm leading-6 text-stone-700">
             현재 위치와 검색 조건은 맛집 검색에만 사용되며 별도로 저장되지 않습니다.
@@ -174,7 +174,7 @@ export default function Home() {
                 현재 위치 설정
               </button>
             </div>
-            <p className="hint">현재 위치 설정은 자동 검색이 아니라 지역 입력값만 채웁니다.</p>
+            <p className="hint">네이버 오픈API는 좌표 기반 반경 검색을 제공하지 않아 동네명 직접 입력이 가장 정확합니다.</p>
           </fieldset>
 
           <fieldset className="panel">
@@ -221,7 +221,7 @@ export default function Home() {
           </fieldset>
 
           <fieldset className="panel">
-            <legend>최소 Google Maps 평점</legend>
+            <legend>최소 평점</legend>
             <div className="chip-grid">
               {minRatings.map((item) => (
                 <button key={item.label} type="button" onClick={() => setMinRating(item.value)} className={minRating === item.value ? "chip selected" : "chip"}>
@@ -229,7 +229,7 @@ export default function Home() {
                 </button>
               ))}
             </div>
-            {minRating === 5 ? <p className="hint warning">5.0을 선택하면 검색 결과가 매우 제한될 수 있습니다.</p> : null}
+            <p className="hint warning">네이버 지역 검색 API는 평점을 제공하지 않아 이 조건은 결과 안내용으로만 표시됩니다.</p>
           </fieldset>
 
           <fieldset className="panel">
@@ -281,7 +281,7 @@ function Results({ response, priorities }: { response: Extract<ApiResponse, { ok
     return (
       <section className="result-empty">
         <h2>선택한 조건을 만족하는 식당을 찾지 못했습니다.</h2>
-        <p>검색 반경 넓히기, 최소 평점 낮추기, 방문 시간 변경하기, 음식 종류 범위 넓히기를 시도해 보세요.</p>
+        <p>지역명을 더 구체적으로 입력하거나 음식 종류 범위를 넓혀 보세요. 네이버 지역 검색 API는 평점·리뷰·영업시간을 제공하지 않습니다.</p>
       </section>
     );
   }
@@ -312,9 +312,9 @@ function RestaurantCard({ item, priorities }: { item: Recommendation; priorities
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Info label="Google Maps 전체 평점" value={item.googleMapsRating == null ? "정보 없음" : `Google Maps 평점 ${item.googleMapsRating.toFixed(1)}`} />
-        <Info label="Google Maps 전체 리뷰 수" value={item.googleMapsReviewCount == null ? "정보 없음" : `Google Maps 리뷰 ${item.googleMapsReviewCount.toLocaleString()}개`} />
-        <Info label="거리" value={item.distanceMeters == null ? "정보 없음" : `${Math.round(item.distanceMeters).toLocaleString()}m`} />
+        <Info label="네이버 평점" value={item.googleMapsRating == null ? "네이버 지역 검색 API 미제공" : `${item.googleMapsRating.toFixed(1)}`} />
+        <Info label="네이버 리뷰 수" value={item.googleMapsReviewCount == null ? "네이버 지역 검색 API 미제공" : `${item.googleMapsReviewCount.toLocaleString()}개`} />
+        <Info label="거리" value={item.distanceMeters == null ? "정확한 반경 거리 계산 미적용" : `${Math.round(item.distanceMeters).toLocaleString()}m`} />
         <Info label="선택 요일 영업 여부" value={item.selectedDayOpen == null ? "영업시간 정보 없음" : item.selectedDayOpen ? "영업일" : "정기휴무"} />
         <Info label="선택 시간 영업 여부" value={item.selectedTimeOpen == null ? "영업시간 정보 없음" : item.selectedTimeOpen ? "영업" : "영업하지 않음"} />
         <Info label="음식 종류" value={item.foodCategory} />
@@ -324,10 +324,10 @@ function RestaurantCard({ item, priorities }: { item: Recommendation; priorities
       </div>
 
       <div className="mt-4 rounded-2xl border border-coral-100 bg-coral-50 p-4">
-        <div className="mb-3 inline-flex rounded-full bg-white px-3 py-1 text-xs font-black text-coral-700">대가성 표현 포함 리뷰 자동 제외</div>
+        <div className="mb-3 inline-flex rounded-full bg-white px-3 py-1 text-xs font-black text-coral-700">네이버 지역 검색 API 기준</div>
         <div className="grid gap-2 text-sm font-semibold text-stone-700 sm:grid-cols-3">
           <p>API 제공 리뷰: {item.reviewStats.apiReviewCount}개</p>
-          <p>대가성 표현 포함 리뷰: {item.reviewStats.sponsoredReviewCount}개 제외</p>
+          <p>광고성 리뷰 제외: 리뷰 본문 미제공</p>
           <p>실제 분석 리뷰: {item.reviewStats.usableReviewCount}개</p>
         </div>
         <p className="mt-2 text-sm text-stone-600">
@@ -374,7 +374,7 @@ function RestaurantCard({ item, priorities }: { item: Recommendation; priorities
       </div>
 
       <a className="maps-button" href={item.googleMapsUrl} target="_blank" rel="noreferrer">
-        Google Maps에서 보기
+        네이버 지도에서 보기
       </a>
     </article>
   );

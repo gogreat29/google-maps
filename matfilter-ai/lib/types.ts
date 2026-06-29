@@ -73,6 +73,7 @@ export type ApiErrorCode =
   | "VALIDATION_ERROR"
   | "AMBIGUOUS_LOCATION"
   | "GOOGLE_API_ERROR"
+  | "NAVER_API_ERROR"
   | "NO_RESULTS";
 
 export type ApiResponse =
